@@ -1,0 +1,23 @@
+# Video files — large binary, do not commit
+video/raw/
+video/trimmed/
+video/tts/
+video/subtitles/
+video/output/
+*.mp4
+*.mov
+*.mp3
+*.wav
+*.m4a
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.eggs/
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db
