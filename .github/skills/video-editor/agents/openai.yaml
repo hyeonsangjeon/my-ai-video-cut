@@ -1,0 +1,4 @@
+interface:
+  display_name: "Video Editor"
+  short_description: "Edit authorized videos and create multilingual SRT."
+  default_prompt: "Use $video-editor to edit my authorized local or YouTube videos and create synchronized multilingual SRT files in the current workspace."

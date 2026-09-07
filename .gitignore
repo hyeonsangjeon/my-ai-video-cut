@@ -1,4 +1,5 @@
 # Video files — large binary, do not commit
+video/jobs/
 video/raw/
 video/trimmed/
 video/tts/
@@ -9,6 +10,9 @@ video/output/
 *.mp3
 *.wav
 *.m4a
+
+# Generated plugin bundles
+dist/
 
 # Python
 .venv/

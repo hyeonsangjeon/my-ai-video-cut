@@ -1,0 +1,20 @@
+{
+  "name": "video-editor",
+  "version": "2.0.1",
+  "license": "MIT",
+  "description": "Markdown-first workflows for authorized local and YouTube video editing, multi-video assembly, and multilingual SRT subtitles.",
+  "author": {
+    "name": "Hyeonsangjeon",
+    "email": "wingnut0310@gmail.com",
+    "url": "https://github.com/hyeonsangjeon"
+  },
+  "repository": "https://github.com/hyeonsangjeon/my-ai-video-cut",
+  "keywords": ["video-editing", "ffmpeg", "youtube", "srt", "multilingual"],
+  "skills": "./.github/skills/",
+  "interface": {
+    "displayName": "Video Editor",
+    "shortDescription": "Cut authorized videos and create multilingual subtitles",
+    "developerName": "Hyeonsangjeon",
+    "category": "Productivity"
+  }
+}

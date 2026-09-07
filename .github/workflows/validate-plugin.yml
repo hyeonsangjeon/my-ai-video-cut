@@ -1,0 +1,57 @@
+name: Validate video plugin
+
+on:
+  pull_request:
+    paths:
+      - ".github/skills/video-editor/**"
+      - ".github/workflows/validate-plugin.yml"
+      - ".claude-plugin/**"
+      - ".codex-plugin/**"
+      - ".agents/plugins/**"
+      - "plugin.json"
+      - "LICENSE*"
+      - "NOTICE"
+      - "tools/**"
+      - "tests/**"
+      - "docs/**"
+      - "README.md"
+  push:
+    paths:
+      - ".github/skills/video-editor/**"
+      - ".github/workflows/validate-plugin.yml"
+      - ".claude-plugin/**"
+      - ".codex-plugin/**"
+      - ".agents/plugins/**"
+      - "plugin.json"
+      - "LICENSE*"
+      - "NOTICE"
+      - "tools/**"
+      - "tests/**"
+      - "docs/**"
+      - "README.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+      - name: Install media test prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends ffmpeg jq fonts-dejavu-core
+      - name: Run offline package and recipe tests
+        run: node --test tests/plugin-package.test.mjs tests/recipes.test.mjs
+      - name: Build the clean plugin bundle
+        run: node tools/package-plugin.mjs --output "$RUNNER_TEMP/video-editor-plugin"

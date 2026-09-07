@@ -1,0 +1,17 @@
+{
+  "name": "my-ai-video-cut",
+  "owner": {
+    "name": "Hyeonsangjeon",
+    "email": "wingnut0310@gmail.com"
+  },
+  "metadata": {
+    "description": "Reusable authorized video editing and multilingual SRT workflows."
+  },
+  "plugins": [
+    {
+      "name": "video-editor",
+      "source": "./",
+      "description": "Authorized video editing, multi-video assembly, and multilingual SRT workflows."
+    }
+  ]
+}
