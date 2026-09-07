@@ -1,10 +1,11 @@
-# Video files — large binary, do not commit
-video/jobs/
-video/raw/
-video/trimmed/
-video/tts/
-video/subtitles/
-video/output/
+# Local production inputs, outputs, notes, and backups
+/input/
+/output/
+/video/
+/task/
+/config/backup/
+
+# Media files outside the local production directories
 *.mp4
 *.mov
 *.mp3
@@ -14,7 +15,7 @@ video/output/
 # Generated plugin bundles
 dist/
 
-# Python
+# Local tool environments and interpreter caches
 .venv/
 __pycache__/
 *.pyc

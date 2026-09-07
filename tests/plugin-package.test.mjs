@@ -40,7 +40,7 @@ test("three native manifests and the standalone skill share one package contract
   assert.equal(metadata.files, entries.size);
 });
 
-test("packaging excludes media, user notes, legacy scripts and VS Code adapter", (t) => {
+test("packaging excludes media, user notes, unexpected code and VS Code adapter", (t) => {
   const root = sourceFixture(t);
   for (const filename of [
     "input/private.mov", "output/customer.json", "video/raw.mp4",

@@ -5,9 +5,10 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { buildPackage, collectPackage, skillRoot } from "../tools/plugin-package.mjs";
+import { installationSelector, installCommandForBundle } from "./support/install-commands.mjs";
 
 const enabled = process.env.VIDEO_EDITOR_NATIVE_TESTS === "1";
-const selector = "video-editor@my-ai-video-cut";
+const selector = installationSelector;
 const marketplace = "my-ai-video-cut";
 
 function fixture(t, homeVariable) {
@@ -49,8 +50,7 @@ function run(fixture, program, ...args) {
 
 test("native Copilot installs and relocates the local marketplace", { skip: !enabled }, (t) => {
   const f = fixture(t, "COPILOT_HOME");
-  run(f, "copilot", "plugin", "marketplace", "add", f.first);
-  run(f, "copilot", "plugin", "install", selector);
+  run(f, "bash", "-euo", "pipefail", "-c", installCommandForBundle("copilot", f.first));
   run(f, "copilot", "plugin", "uninstall", selector);
   run(f, "copilot", "plugin", "marketplace", "remove", marketplace);
   run(f, "copilot", "plugin", "marketplace", "add", f.second);
@@ -61,8 +61,7 @@ test("native Copilot installs and relocates the local marketplace", { skip: !ena
 
 test("native Codex installs the new version after relocating the marketplace", { skip: !enabled }, (t) => {
   const f = fixture(t, "CODEX_HOME");
-  run(f, "codex", "plugin", "marketplace", "add", f.first, "--json");
-  run(f, "codex", "plugin", "add", selector, "--json");
+  run(f, "bash", "-euo", "pipefail", "-c", installCommandForBundle("codex", f.first));
   run(f, "codex", "plugin", "remove", selector);
   run(f, "codex", "plugin", "marketplace", "remove", marketplace);
   run(f, "codex", "plugin", "marketplace", "add", f.second, "--json");
@@ -74,13 +73,12 @@ test("native Codex installs the new version after relocating the marketplace", {
   assert.equal(realpathSync(installed.source.path), realpathSync(f.second));
 });
 
-test("native Claude updates local-scope installation after source relocation", { skip: !enabled }, (t) => {
+test("native Claude updates isolated user-scope installation after source relocation", { skip: !enabled }, (t) => {
   const f = fixture(t, "CLAUDE_CONFIG_DIR");
   run(f, "claude", "plugin", "validate", path.join(f.first, ".claude-plugin/plugin.json"));
-  run(f, "claude", "plugin", "marketplace", "add", f.first, "--scope", "local");
-  run(f, "claude", "plugin", "install", selector, "--scope", "local");
-  run(f, "claude", "plugin", "marketplace", "add", f.second, "--scope", "local");
-  run(f, "claude", "plugin", "update", selector, "--scope", "local");
+  run(f, "bash", "-euo", "pipefail", "-c", installCommandForBundle("claude", f.first));
+  run(f, "claude", "plugin", "marketplace", "add", f.second, "--scope", "user");
+  run(f, "claude", "plugin", "update", selector, "--scope", "user");
   const list = run(f, "claude", "plugin", "list");
   assert(list.includes(selector) && list.includes(f.version));
   assert(run(f, "claude", "plugin", "marketplace", "list").includes(f.second));
