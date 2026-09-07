@@ -4,6 +4,8 @@
 플러그인 이름은 `video-editor`, marketplace 이름은 `my-ai-video-cut`이다.
 스킬 본문은 [.github/skills/video-editor/SKILL.md](../.github/skills/video-editor/SKILL.md)
 한 곳에만 있다. 복제본이나 심볼릭 링크를 만들 필요가 없다.
+최초 사용자 전역 설치는 [README의 한 줄 명령](../README.md#플러그인-한-줄-설치)을
+사용한다. 아래에서는 로컬 번들, 프로젝트 범위, 업데이트/제거 절차를 설명한다.
 
 ## 패키지 구조와 지원 범위
 
@@ -22,8 +24,8 @@ Codex의 [marketplace](../.agents/plugins/marketplace.json)는 `./`로 이 저�
 
 등록하는 구성 요소는 스킬 하나뿐이다. hooks, MCP 서버, 자동 실행 서비스,
 의존성 설치 명령은 포함하지 않는다. 저장소의 `.github/agents/` 안내문은
-플러그인 에이전트로 등록하지 않는다. 기존 Python 스크립트는 레거시 자료이며
-새 스킬의 실행 의존성이 아니다.
+플러그인 에이전트로 등록하지 않는다. 미디어 실행 절차는 Markdown의 CLI 레시피로
+구성되며, 유지보수 도구와 사용자 데이터는 실행 패키지 밖에 둔다.
 
 **저장소 탐색과 플러그인 설치는 다르다.**
 
@@ -89,7 +91,7 @@ YouTube 입력에만 `yt-dlp`, 나레이션 생성에만 선택한 TTS 도구가
 `input/`, `output/`, `video/`, `__pycache__/` 등이 있는 checkout을 그대로
 설치하지 않는다. [번들 생성기](../tools/package-plugin.mjs)는 **명시적으로 허용된
 17개 파일**과 존재하는 루트 라이선스/NOTICE만 새 디렉터리에 복사한다.
-미디어, 임의로 추가된 참고 메모, 레거시 Python, VS Code 어댑터와 개발 도구는
+미디어, 임의로 추가된 참고 메모, VS Code 어댑터와 개발 도구는
 포함하지 않는다. 필수 파일 누락, 버전 불일치, 번들 밖 참조, 원본 경로의
 심볼릭 링크와 기존 출력 디렉터리를 거부한다.
 
@@ -112,7 +114,7 @@ PLUGIN_ROOT="$BUNDLE_ROOT"
 ```
 
 번들 안의 `.github/skills/video-editor/` 경로를 유지하므로 manifest를 고칠
-필요가 없다. `scripts/`, `.github/agents/`, 프로젝트 지침, `.git/`, 미디어,
+필요가 없다. `tools/`, `tests/`, `.github/agents/`, 프로젝트 지침, `.git/`, 미디어,
 캐시는 복사하지 않는다. 세 호스트 모두 아래 설치 명령을 그대로 실행하면
 `PLUGIN_ROOT`가 가리키는 이 번들을 사용한다. **작업은 계속 `WORKSPACE`에서
 시작하며 번들 안에 미디어나 결과를 만들지 않는다.**
@@ -213,8 +215,9 @@ Claude Code 대화창에서 실행한다:
 ### 현재 작업 공간에 지속 설치
 
 아래 `local` scope는 작업 공간의 `.claude/settings.local.json`에 설치 선언을
-저장한다. 사용자 전체에 적용하려면 사용자가 명시적으로 `--scope user`를
-선택한다. scope와 무관하게 플러그인 파일은 Claude의 사용자 캐시에 저장될 수 있다.
+저장한다. README의 한 줄 명령은 `--scope user`로 모든 프로젝트에 적용한다.
+프로젝트에 한정하려면 아래 `local` 명령을 선택한다. scope와 무관하게 플러그인
+파일은 Claude의 사용자 캐시에 저장될 수 있다.
 
 ```bash
 cd "$WORKSPACE"
@@ -325,22 +328,31 @@ claude plugin update video-editor@my-ai-video-cut --scope local
 개발 검증은 임시 설정 홈/작업 공간에서 하고, 실제 사용자 환경에서는 변경
 대상과 scope를 확인한 뒤 실행한다.
 
-## Private GitHub Release 번들
+## GitHub Release 번들
 
-이 저장소와 릴리스는 private다. MIT 라이선스를 적용해도 익명 접근 권한이 생기지
-않으며, 저장소를 읽을 수 있는 GitHub 계정으로 인증해야 한다.
-릴리스가 게시된 뒤에는 개발 파일이 없는 ZIP 번들을 받는 방법을 우선한다.
+저장소가 private인 경우 읽기 권한이 있는 GitHub 계정으로 인증해야 한다.
+MIT 라이선스는 저장소의 공개 범위나 접근 권한을 바꾸지 않는다.
+개발 파일이 없는 ZIP 번들을 받는 방법을 우선하며, 다음 명령은 실제 게시된
+최신 릴리스 태그를 조회한다. 작업 트리의 버전과 게시된 버전은 다를 수 있다.
 
 ```bash
+set -euo pipefail
+RELEASE_TAG=$(gh release view --repo hyeonsangjeon/my-ai-video-cut --json tagName --jq .tagName)
+if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  printf 'Unsupported release tag: %s\n' "$RELEASE_TAG" >&2
+  exit 1
+fi
+VERSION=${RELEASE_TAG#v}
+ARCHIVE="video-editor-$VERSION.zip"
 test ! -e "$DOWNLOAD_DIR"
 mkdir -p "$DOWNLOAD_DIR"
-gh release download v2.0.1 --repo hyeonsangjeon/my-ai-video-cut \
-  --pattern 'video-editor-2.0.1.zip' --pattern 'SHA256SUMS' --dir "$DOWNLOAD_DIR"
+gh release download "$RELEASE_TAG" --repo hyeonsangjeon/my-ai-video-cut \
+  --pattern "$ARCHIVE" --pattern 'SHA256SUMS' --dir "$DOWNLOAD_DIR"
 cd "$DOWNLOAD_DIR"
 shasum -a 256 -c SHA256SUMS
-test ! -e "$WORKSPACE/plugins/video-editor-2.0.1"
-unzip -n video-editor-2.0.1.zip -d "$WORKSPACE/plugins"
-PLUGIN_ROOT="$WORKSPACE/plugins/video-editor-2.0.1"
+test ! -e "$WORKSPACE/plugins/video-editor-$VERSION"
+unzip -n "$ARCHIVE" -d "$WORKSPACE/plugins"
+PLUGIN_ROOT="$WORKSPACE/plugins/video-editor-$VERSION"
 ```
 
 `DOWNLOAD_DIR`과 압축 해제 대상은 기존 파일과 충돌하지 않는 새 경로로 선택한다.
@@ -352,13 +364,13 @@ ZIP은 기본 스킬/등록 파일 17개와 MIT LICENSE를 포함하며 Python·
 ## GitHub에서 설치 — 변경 사항을 게시한 뒤에만
 
 **위 manifest와 스킬 변경이 원격 저장소에 포함된 이후에만** 다음 명령을 사용한다.
-이 private 저장소에 대한 Git 접근 권한도 있어야 한다. CLI가 권한 오류를 내면
+private 저장소라면 Git 접근 권한도 있어야 한다. CLI가 권한 오류를 내면
 저장소를 public으로 바꾸지 말고 인증/접근 권한을 확인한다.
 로컬에서 파일을 작성한 것만으로 GitHub나 공식 플러그인 디렉터리에 게시되지는
 않는다. 이 문서는 push, 공개 marketplace 제출, 사용자 환경 설치를 수행하지 않는다.
 현재 로컬 변경을 시험할 때는 앞 절의 `$PLUGIN_ROOT`를 사용한다.
 아래 저장소 URL 방식은 원격 저장소의 파일을 받는 것이며, 생성기의 최소
-17파일 번들과 같은 파일 집합을 보장하지 않는다. 레거시/개발 파일도 배포에서
+17파일 번들과 같은 파일 집합을 보장하지 않는다. 개발 파일도 배포에서
 완전히 제외하려면 생성된 번들을 별도 배포 소스로 게시한 뒤 그 소스를 등록한다.
 설치된 스킬의 기본 실행 경로가 Python을 요구하지 않는다는 점은 동일하다.
 
